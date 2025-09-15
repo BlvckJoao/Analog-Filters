@@ -1,0 +1,42 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parâmetros do circuito
+R = 100
+L = 10e-3
+C = 1e-6
+
+# Frequência angular (rad/s)
+w = np.logspace(1, 6, 1000)
+
+# Função de transferência rejeita-faixa (notch)
+num = 1 - (w**2) * L * C
+den = 1 - (w**2) * L * C + 1j * w * R * C
+H = num / den
+
+# Magnitude normalizada
+H_mag = np.abs(H)
+H_mag /= np.max(H_mag)
+
+# Fase em graus
+H_phase = np.angle(H, deg=True)
+
+# --- Gráficos ---
+plt.figure(figsize=(10,6))
+
+# Magnitude
+plt.subplot(2,1,1)
+plt.semilogx(w, H_mag)
+plt.title("Filtro RLC Rejeita-Faixa")
+plt.ylabel("|H(jω)| normalizado")
+plt.grid(which='both', linestyle='--')
+
+# Fase
+plt.subplot(2,1,2)
+plt.semilogx(w, H_phase)
+plt.xlabel("Frequência angular ω [rad/s]")
+plt.ylabel("Fase (graus)")
+plt.grid(which='both', linestyle='--')
+
+plt.tight_layout()
+plt.show()
