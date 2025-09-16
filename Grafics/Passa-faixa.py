@@ -1,25 +1,19 @@
-# Requisitos: pip install numpy matplotlib scipy schemdraw
 import numpy as np
 import matplotlib.pyplot as plt
 import schemdraw
 import schemdraw.elements as elm
 from scipy.signal import TransferFunction, bode, impulse, step
 
-# ------------------------
-# PARÂMETROS (edite como quiser)
-# ------------------------
+# PARÂMETROS
 R = 100.0       # ohms
 L = 10e-3       # H (10 mH)
 C = 1e-6        # F  (1 uF)
 
-# ------------------------
 # Desenho do circuito (salva 'rlc_user_diagram.svg')
-# Observação: saída medida ACROSS o resistor R (V_R), o que gera o passa-faixa.
-# ------------------------
 with schemdraw.Drawing(file='rlc_user_diagram_fixed.svg') as d:
     d.config(unit=3)
     # Fonte senoidal
-    vin = d.add(elm.SourceSin().label('Vin', loc='left'))
+    vin = d.add(elm.SourceSin().label('Vin', loc='left')) #Talvez mudança aqui.
     #Nó de entrada
     d.add(elm.Dot(open=True).label('Vout+', loc='left'))
     # Resistor
@@ -33,18 +27,12 @@ with schemdraw.Drawing(file='rlc_user_diagram_fixed.svg') as d:
 
 print("Diagrama salvo em 'rlc_user_diagram.svg'")
 
-# ------------------------
 # Função de transferência (saída no resistor R)
-# H(s) = R/(R + sL + 1/(sC))  -> em polinômios:
-# H(s) = (R/L * s) / (s^2 + (R/L) s + 1/(L C))
-# ------------------------
-num = [R / L, 0.0]                 # numerador: (R/L) * s  -> [R/L, 0]
-den = [1.0, R / L, 1.0 / (L * C)]  # denominador: s^2 + (R/L) s + 1/(LC)
+num = [R / L, 0.0]                 # numerador
+den = [1.0, R / L, 1.0 / (L * C)]  # denominador
 H = TransferFunction(num, den)
 
-# ------------------------
 # Frequências características
-# ------------------------
 # ressonância central
 w0 = 1.0 / np.sqrt(L * C)
 
@@ -55,9 +43,7 @@ wc2 = (R / (2.0 * L)) * (np.sqrt(1.0 + 4.0 * L / (R**2 * C)) + 1.0)
 
 print(f"ω0 = {w0:.4e} rad/s, ωc1 = {wc1:.4e} rad/s, ωc2 = {wc2:.4e} rad/s")
 
-# ------------------------
 # Vetores de frequência
-# ------------------------
 n_points = 4000
 # log-spaced (para Bode/plots log)
 w_min_log = max(1e-2, w0 * 1e-3)   # evita começar demasiado perto de 0
@@ -71,9 +57,7 @@ w_bode, mag_db, phase_deg = bode(H, w=w_log)
 mag_linear = 10**(mag_db / 20.0)
 mag_norm = mag_linear / np.max(mag_linear)
 
-# ------------------------
 # PLOT 1 — Magnitude normalizada (log)
-# ------------------------
 plt.figure(figsize=(12,6))
 plt.semilogx(w_bode, mag_norm, label='|H(jω)| normalizado', linewidth=2)
 
@@ -85,13 +69,11 @@ l3 = plt.axvline(w0,  color='r', linestyle='-',  linewidth=1.5)
 # largura de banda
 BW = wc2 - wc1
 
-# segmento roxo mostrando a banda (-3 dB)
+# segmento roxo mostrando a banda
 y_bw = 0.707  # nível de -3 dB na curva normalizada
 plt.hlines(y_bw, wc1, wc2, colors='m', linewidth=2)
 
-# ------------------------
 # Glossário com cores correspondentes
-# ------------------------
 plt.title("Filtro Passa-Faixa RLC — Magnitude normalizada")
 
 l1.set_label(rf'$\omega_{{c1}}$ = {wc1:.2e} rad/s')
@@ -111,9 +93,7 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-# ------------------------
 # PLOT 2 — Fase com assíntotas aproximadas
-# ------------------------
 plt.figure(figsize=(12,6))
 line_phase, = plt.semilogx(w_bode, phase_deg, label='∠H(jω) (real)', linewidth=2)
 
@@ -127,9 +107,7 @@ l1 = plt.axvline(wc1, color='g', linestyle='--', linewidth=1.2)
 l2 = plt.axvline(wc2, color='b', linestyle='--', linewidth=1.2)
 l3 = plt.axvline(w0,  color='r', linestyle='-',  linewidth=1.2)
 
-# ------------------------
 # Glossário
-# ------------------------
 plt.title("Filtro Passa-Faixa RLC — Fase (com assíntotas)")
 plt.xlabel("ω [rad/s]")
 plt.ylabel("Fase [graus]")
@@ -138,8 +116,8 @@ plt.xlim(w_min_log, w_max)
 plt.grid(which='both', linestyle='--', alpha=0.6)
 
 # valores iniciais e finais da fase
-fase_ini = - np.round(np.min(phase_deg), 1)   # grau inicial
-fase_fim = - np.round(np.max(phase_deg), 1)   # grau final
+fase_ini = - np.round(np.min(phase_deg), 1)  
+fase_fim = - np.round(np.max(phase_deg), 1)   
 
 # setando os labels diretamente nos objetos
 l1.set_label(rf'$\omega_{{c1}}$ = {wc1:.2e} rad/s')
@@ -155,9 +133,7 @@ plt.tight_layout()
 plt.show()
 
 
-# ------------------------
 # PLOT 3 — Resposta ao degrau (tempo)
-# ------------------------
 t_step, y_step = step(H)
 
 plt.figure(figsize=(12,6))
@@ -171,9 +147,7 @@ plt.tight_layout()
 plt.show()
 
 
-# ------------------------
 # Resumo impresso para o usuário
-# ------------------------
 print("Resumo:")
 print(f"  R = {R} Ω, L = {L} H, C = {C} F")
 print(f"  ω0 = {w0:.4e} rad/s")
