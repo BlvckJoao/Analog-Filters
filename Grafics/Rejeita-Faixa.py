@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import schemdraw
 import schemdraw.elements as elm
 from scipy.signal import TransferFunction, bode, step
+from scipy.optimize import brentq
 
 # PARÂMETROS
 R = 100.0       # ohms
@@ -12,7 +13,7 @@ C = 1e-6        # F  (1 uF)
 # ---------------------------
 # Desenho do circuito
 # ---------------------------
-with schemdraw.Drawing(file='rlc_user_diagram_fixed.svg') as d:
+with schemdraw.Drawing(file='rlc_notch_diagram.svg') as d:
     d.config(unit=3)
     # Fonte senoidal
     vin = d.add(elm.SourceSin().label('Vin', loc='right')) #Talvez mudança aqui.
@@ -29,33 +30,37 @@ with schemdraw.Drawing(file='rlc_user_diagram_fixed.svg') as d:
 
 print("Diagrama salvo em 'rlc_notch_diagram.svg'")
 
-# ---------------------------
-# Função de transferência (Notch)
-# ---------------------------
+# -----------------------------------
+# FUNÇÃO DE TRANSFERÊNCIA
+# -----------------------------------
 w0 = 1.0 / np.sqrt(L * C)       # frequência central
 BW = R / L                      # largura de banda (rad/s)
 Q  = w0 / BW                    # fator de qualidade
 
-# função de transferência
-num = [1.0, 0.0, w0**2]         # numerador
-den = [1.0, w0/Q, w0**2]        # denominador
+# Numerador e denominador normalizados
+num = [1.0, 0.0, w0**2]         # zeros em ±jω0
+den = [1.0, w0/Q, w0**2]        # pólos complexos conjugados
 H = TransferFunction(num, den)
 
-# frequências de corte (meia potência)
-wc1 = w0 * (np.sqrt(1 + 1/(2*Q**2)) - 1/(2*Q))
-wc2 = w0 * (np.sqrt(1 + 1/(2*Q**2)) + 1/(2*Q))
+# -----------------------------------
+# CÁLCULO DAS FREQUÊNCIAS DE CORTE
+# -----------------------------------
+# |H(jw)| normalizado
+def H_abs(w):
+    _, mag_db, _ = bode(H, w=[w])
+    mag_lin = 10**(mag_db[0]/20.0)
+    return mag_lin
 
-print("Parâmetros do filtro:")
-print(f"  ω0 = {w0:.4e} rad/s")
-print(f"  BW = {BW:.4e} rad/s")
-print(f"  Q  = {Q:.4f}")
-print(f"  ωc1 = {wc1:.4e} rad/s")
-print(f"  ωc2 = {wc2:.4e} rad/s")
+H_max = H_abs(1e-6)  # ganho em baixa frequência (≈ máximo)
+target = H_max/np.sqrt(2)  # ponto de -3 dB
 
+# Encontrar wc1 < w0 < wc2 resolvendo numericamente
+wc1 = brentq(lambda w: H_abs(w) - target, w0/10, w0) 
+wc2 = brentq(lambda w: H_abs(w) - target, w0, w0*10)
 
-# ---------------------------
-# Bode — Magnitude
-# ---------------------------
+# -----------------------------------
+# BODE — MAGNITUDE
+# -----------------------------------
 n_points = 4000
 w_log = np.logspace(np.log10(w0*1e-2), np.log10(w0*1e2), n_points)
 w_bode, mag_db, phase_deg = bode(H, w=w_log)
@@ -76,7 +81,7 @@ plt.plot([], [], ' ', label=rf'$Q$ = {Q:.2f}')
 plt.plot([], [], ' ', label=rf'$BW$ = {BW:.2e} rad/s')
 
 # linha para largura de banda
-y_pos = 0.5  # altura relativa para a linha
+y_pos = (1/np.sqrt(2))
 plt.hlines(y=y_pos, xmin=wc1, xmax=wc2, colors='purple', linestyles='-', linewidth=2)
 plt.text(np.sqrt(wc1*wc2), y_pos*1.05, 'BW', color='purple',
          ha='center', va='bottom', fontsize=12)
@@ -89,9 +94,9 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-# ---------------------------
-# Bode — Fase
-# ---------------------------
+# -----------------------------------
+# BODE — FASE
+# -----------------------------------
 plt.figure(figsize=(12,6))
 plt.semilogx(w_bode, phase_deg, label='∠H(jω)', linewidth=2)
 plt.axvline(w0, color='r', linestyle='--', linewidth=1.2, label=rf'$\omega_0$ = {w0:.2e}')
@@ -104,27 +109,16 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-# ---------------------------
-# Resposta ao degrau
-# ---------------------------
-t_step, y_step = step(H)
-
-plt.figure(figsize=(12,6))
-plt.plot(t_step, y_step, linewidth=1.6, label='Resposta ao degrau')
-plt.title("Filtro Rejeita-Faixa RLC — Resposta ao Degrau")
-plt.xlabel("Tempo [s]")
-plt.ylabel("Amplitude [Vout/Vin]")
-plt.grid(True, linestyle='--', alpha=0.7)
-plt.legend()
-plt.tight_layout()
-plt.show()
-
-# ---------------------------
-# Resumo
-# ---------------------------
-print("Resumo:")
-print(f"  R = {R} Ω, L = {L} H, C = {C} F")
+# -----------------------------------
+# RESUMO
+# -----------------------------------
+print("\nResumo do filtro:")
+print(f"  R  = {R:.2f} Ω")
+print(f"  L  = {L:.2e} H")
+print(f"  C  = {C:.2e} F")
 print(f"  ω0 = {w0:.4e} rad/s")
+print(f"  BW = {BW:.4e} rad/s")
+print(f"  Q  = {Q:.4f}")
 print(f"  ωc1 = {wc1:.4e} rad/s")
 print(f"  ωc2 = {wc2:.4e} rad/s")
-print("Arquivos gerados: 'rlc_notch_diagram.svg' (diagrama).")
+print("Arquivos gerados: 'rlc_notch_diagram.svg'")

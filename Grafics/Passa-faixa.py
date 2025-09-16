@@ -68,6 +68,7 @@ l3 = plt.axvline(w0,  color='r', linestyle='-',  linewidth=1.5)
 
 # largura de banda
 BW = wc2 - wc1
+Q = w0 / BW   # fator de qualidade
 
 # segmento roxo mostrando a banda
 y_bw = 0.707  # nível de -3 dB na curva normalizada
@@ -80,9 +81,10 @@ l1.set_label(rf'$\omega_{{c1}}$ = {wc1:.2e} rad/s')
 l2.set_label(rf'$\omega_{{c2}}$ = {wc2:.2e} rad/s')
 l3.set_label(rf'$\omega_0$   = {w0:.2e} rad/s')
 
-# linha invisível só para a banda
+# linhas invisíveis só para legenda
 plt.plot([], [], color='m', linestyle='-', linewidth=2, 
          label=rf'$BW$ = {BW:.2e} rad/s')
+plt.plot([], [], ' ', label=rf'$Q$ = {Q:.2f}')   # fator de qualidade
 
 plt.xlabel("ω [rad/s]")
 plt.ylabel("|H(jω)| (normalizado)")
@@ -131,21 +133,6 @@ plt.plot([], [], ' ', label=rf'Fase final   = {fase_fim:.1f}°')
 plt.legend()
 plt.tight_layout()
 plt.show()
-
-
-# PLOT 3 — Resposta ao degrau (tempo)
-t_step, y_step = step(H)
-
-plt.figure(figsize=(12,6))
-plt.plot(t_step, y_step, linewidth=1.6, label='Resposta ao degrau')
-plt.title("Filtro Passa-Faixa RLC — Resposta ao Degrau")
-plt.xlabel("Tempo [s]")
-plt.ylabel("Amplitude [Vout/Vin]")
-plt.grid(True, linestyle='--', alpha=0.7)
-plt.legend()
-plt.tight_layout()
-plt.show()
-
 
 # Resumo impresso para o usuário
 print("Resumo:")
