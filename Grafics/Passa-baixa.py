@@ -6,7 +6,7 @@ from scipy.signal import TransferFunction, bode
 
 # PARÂMETROS
 R = 1e3       # ohms
-C = 1e-6      # F
+C = 1e-9      # F
 wc = 1.0 / (R * C)   # frequência de corte rad/s
 
 # -----------------------------
@@ -17,21 +17,21 @@ with schemdraw.Drawing(file='rc_highpass_diagram.svg') as d:
     # Fonte senoidal
     vin = d.add(elm.SourceSin().label('Vin', loc='left'))
     # Capacitor em série
-    c = d.add(elm.Capacitor().right().label('C'))
+    r = d.add(elm.Resistor().right().label('C'))
     # Nó de saída +
-    d.add(elm.Dot(open=True).at(c.end).label('Vout+', loc='right'))
+    d.add(elm.Dot(open=True).at(r.end).label('Vout+', loc='right'))
     # Resistor para o terra
-    r = d.add(elm.Resistor().down().label('R'))
-    d.add(elm.Dot(open=True).at(r.end).label('Vout-', loc='right'))
+    c = d.add(elm.Capacitor().down().label('R'))
+    d.add(elm.Dot(open=True).at(c.end).label('Vout-', loc='right'))
     d.add(elm.Line().left())
 
-print("Diagrama salvo em 'rc_highpass_diagram.svg'")
+print("Diagrama salvo em 'rc_lowpass_diagram.svg'")
 
 # -----------------------------
 # Função de transferência
 # -----------------------------
-num = [R*C, 0.0]   # sRC
-den = [R*C, 1.0]   # sRC + 1
+num = [1.0]          # Numerador = 1
+den = [R*C, 1.0]     # Denominador = sRC + 1
 H = TransferFunction(num, den)
 
 print(f"ωc = {wc:.4e} rad/s")
@@ -54,7 +54,7 @@ plt.semilogx(w_bode, mag_norm, label='|H(jω)| normalizado', linewidth=2)
 # linha de corte
 plt.axvline(wc, color='r', linestyle='--', linewidth=1.5, label=rf'$\omega_c$ = {wc:.2e}')
 
-plt.title("Filtro RC Passa-Alta — Magnitude normalizada")
+plt.title("Filtro RC Passa-Baixa — Magnitude normalizada")
 plt.xlabel("ω [rad/s]")
 plt.ylabel("|H(jω)| (normalizado)")
 plt.grid(which='both', linestyle='--', alpha=0.6)
@@ -67,7 +67,7 @@ plt.figure(figsize=(12,6))
 plt.semilogx(w_bode, phase_deg, label='∠H(jω)', linewidth=2)
 plt.axvline(wc, color='r', linestyle='--', linewidth=1.5, label=rf'$\omega_c$ = {wc:.2e}')
 
-plt.title("Filtro RC Passa-Alta — Fase")
+plt.title("Filtro RC Passa-Baixa — Fase")
 plt.xlabel("ω [rad/s]")
 plt.ylabel("Fase [graus]")
 plt.grid(which='both', linestyle='--', alpha=0.6)
@@ -81,4 +81,4 @@ plt.show()
 print("Resumo:")
 print(f"  R = {R:.2e} Ω, C = {C:.2e} F")
 print(f"  ωc = {wc:.4e} rad/s")
-print("Arquivos gerados: 'rc_highpass_diagram.svg' (diagrama).")
+print("Arquivos gerados: 'rc_lowpass_diagram.svg' (diagrama).")
