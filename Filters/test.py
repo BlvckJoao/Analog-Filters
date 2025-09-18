@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
 
-order = 2              # Ordem do filtro
+order = 2               # Ordem do filtro
 filter_type = 'high'         # Tipo: 'low', 'high', 'bandpass', 'bandstop'
 
 cutoff = 1000              

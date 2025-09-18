@@ -5,8 +5,8 @@ import schemdraw.elements as elm
 from scipy.signal import TransferFunction, bode
 
 # PARÂMETROS
-R = 1e3       # ohms
-C = 1e-6      # F
+R = 1e4       # ohms
+C = 1.59e-6      # F
 wc = 1.0 / (R * C)   # frequência de corte rad/s
 
 # -----------------------------
