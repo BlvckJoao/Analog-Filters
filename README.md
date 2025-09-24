@@ -4,7 +4,7 @@ Projeto realizado para a disciplica de Eletricidade e Circuitos para Computaçã
 
 Equipe:
 - Arnaldo Antônio Inácio Silva
-- Iago Lopes da Silva Costa
+- Iago Vitor Lopes das Chagas
 - João Pedro Pereira Maranhão
 - Luis Eduardo Pereira Nunes da Costa
 - Thiago Sergio Lima de Oliveira
